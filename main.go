@@ -1,8 +1,9 @@
 package main
 
 import (
-	"https://github.com/aayush4vedi/GoDownloader/route"
 	"net/http"
+
+	"github.com/aayush4vedi/GoDownloader/route"
 )
 
 func main() {
