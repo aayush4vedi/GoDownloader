@@ -14,8 +14,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var M = make(map[string]model.Response)
-var F = make(map[string]string)
+var ResponseMap = make(map[string]model.Response)
+var FileMap = make(map[string]string)
 
 func Health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
@@ -31,7 +31,6 @@ const limitThreads = 5
 
 func Downloader(w http.ResponseWriter, r *http.Request) {
 	var mapp model.Response
-	// M := make(ResponseMap)
 	requestBody, _ := ioutil.ReadAll(r.Body)
 	var downloadRequest model.Download
 	json.Unmarshal(requestBody, &downloadRequest)
@@ -47,7 +46,7 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 		mapp.DownloadType = "serial"
 		mapp.Status = "SUCCESSFUL"
 		mapp.EndTime = time.Now()
-		mapp.Files = F
+		mapp.Files = FileMap
 	} else if downloadRequest.Type == "concurrent" {
 		mapp.DownloadType = "concurrent"
 		var ch = make(chan string)
@@ -56,9 +55,6 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 				for {
 					url, ok := <-ch
 					if !ok {
-						mapp.Status = "SUCCESSFUL"
-						mapp.EndTime = time.Now()
-						mapp.Files = F
 						return //channel is closed
 					}
 					_ = Download(url)
@@ -70,22 +66,22 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 				ch <- url
 			}
 			close(ch)
+			mapp.Status = "SUCCESSFUL"
+			mapp.EndTime = time.Now()
+			mapp.Files = FileMap
 			return
 		}()
 	}
-	// mapp.Status = "SUCCESSFUL"
-	// mapp.EndTime = time.Now()
-	// mapp.Files = F
 	w.Header().Set("Content-type", "application/json")
 	id, _ := json.Marshal(downloadID)
 	// fmt.Println("map: ", mapp)
-	M[downloadID.ID] = mapp
+	ResponseMap[downloadID.ID] = mapp
 	w.Write(id)
 }
 
 func Download(url string) error {
 	filepath := "/Users/aayushchaturvedi/Desktop" + "/" + GenerateUUID() + ".png"
-	F[url] = filepath
+	FileMap[url] = filepath
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -101,6 +97,6 @@ func Download(url string) error {
 }
 func Status(w http.ResponseWriter, r *http.Request) {
 	id := (mux.Vars(r)["id"])
-	mapp, _ := json.Marshal(M[id])
+	mapp, _ := json.Marshal(ResponseMap[id])
 	w.Write(mapp)
 }
