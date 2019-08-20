@@ -1,13 +1,13 @@
 package route
 
 import (
-	"net/http"
-
 	"GoDownloader/controller"
+
+	"github.com/gorilla/mux"
 )
 
-func RouteRequest(server *http.ServeMux) {
-	server.HandleFunc("/health", controller.Health)
-	server.HandleFunc("/download/{id}", controller.Status)
-	server.HandleFunc("/downloads", controller.Downloader)
+func Route_call(router *mux.Router) {
+	router.HandleFunc("/health", controller.Health)
+	router.HandleFunc("/download/{id}", controller.Status).Methods("GET")
+	router.HandleFunc("/downloads", controller.Downloader).Methods("GET")
 }

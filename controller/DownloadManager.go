@@ -19,8 +19,9 @@ var F = make(map[string]string)
 
 func Health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
-	fmt.Println("Health:OK")
+	fmt.Fprint(w, "Health: OK")
 }
+
 func GenerateUUID() string {
 	id := uuid.New()
 	return id.String()
@@ -29,27 +30,23 @@ func GenerateUUID() string {
 const limitThreads = 5
 
 func Downloader(w http.ResponseWriter, r *http.Request) {
+	var mapp model.Response
 	// M := make(ResponseMap)
 	requestBody, _ := ioutil.ReadAll(r.Body)
 	var downloadRequest model.Download
 	json.Unmarshal(requestBody, &downloadRequest)
 	downloadID := model.DownloadID{"Id" + GenerateUUID()}
-	M[downloadID.ID] = model.Response{
-		ID:        downloadID.ID,
-		Status:    "QUEUED",
-		StartTime: time.Now(),
-	}
+	mapp.ID = downloadID.ID
+	mapp.Status = "QUEUED"
+	mapp.StartTime = time.Now()
+
 	if downloadRequest.Type == "serial" {
 		for _, url := range downloadRequest.Urls {
 			_ = Download(url)
 		}
-		M[downloadID.ID] = model.Response{
-			DownloadType: "serial",
-		}
+		mapp.DownloadType = "serial"
 	} else if downloadRequest.Type == "concurrent" {
-		M[downloadID.ID] = model.Response{
-			DownloadType: "concurrent",
-		}
+		mapp.DownloadType = "concurrent"
 		var ch = make(chan string)
 		for i := 0; i < limitThreads; i++ {
 			go func() {
@@ -70,23 +67,16 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 			return
 		}()
 	}
-	M[downloadID.ID] = model.Response{
-		Status:  "SUCCESSFUL",
-		EndTime: time.Now(),
-		Files:   F,
-	}
+	mapp.Status = "SUCCESSFUL"
+	mapp.EndTime = time.Now()
+	mapp.Files = F
 	w.Header().Set("Content-type", "application/json")
 	id, _ := json.Marshal(downloadID)
-	fmt.Println("map: ", M[downloadID.ID])
+	// fmt.Println("map: ", mapp)
+	M[downloadID.ID] = mapp
 	w.Write(id)
-	// fmt.Fprint(w, M[downloadID.ID])
+}
 
-}
-func Status(w http.ResponseWriter, r *http.Request) {
-	id := (mux.Vars(r)["id"])
-	fmt.Println("here")
-	fmt.Fprint(w, M[id])
-}
 func Download(url string) error {
 	filepath := "/Users/aayushchaturvedi/Desktop" + "/" + GenerateUUID() + ".png"
 	F[url] = filepath
@@ -102,4 +92,9 @@ func Download(url string) error {
 	defer out.Close()
 	_, err = io.Copy(out, resp.Body)
 	return err
+}
+func Status(w http.ResponseWriter, r *http.Request) {
+	id := (mux.Vars(r)["id"])
+	mapp, _ := json.Marshal(M[id])
+	w.Write(mapp)
 }
