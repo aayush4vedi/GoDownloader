@@ -18,9 +18,9 @@ import (
 var ResponseMap = make(map[string]model.Response)
 var FileMap = make(map[string]string)
 
-func Health(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
-	fmt.Fprint(w, "Health: OK")
+func Health(write http.ResponseWriter, read *http.Request) {
+	write.WriteHeader(200)
+	fmt.Fprint(write, "Health: OK")
 }
 
 func GenerateUUID() string {
@@ -30,9 +30,9 @@ func GenerateUUID() string {
 
 const limitThreads = 5
 
-func Downloader(w http.ResponseWriter, r *http.Request) {
+func Downloader(write http.ResponseWriter, read *http.Request) {
 	var mapp model.Response
-	requestBody, _ := ioutil.ReadAll(r.Body)
+	requestBody, _ := ioutil.ReadAll(read.Body)
 	var downloadRequest model.Download
 	json.Unmarshal(requestBody, &downloadRequest)
 	downloadID := model.DownloadID{"Id" + GenerateUUID()}
@@ -51,7 +51,7 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 	} else if downloadRequest.Type == "concurrent" {
 		mapp.DownloadType = "concurrent"
 		var ch = make(chan string)
-		for i := 0; i < limitThreads; i++ {
+		for lim := 0; lim < limitThreads; lim++ {
 			go func() {
 				for {
 					url, ok := <-ch
@@ -78,14 +78,14 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 			Message:      "unknown type of download",
 		}
 		er, _ := json.Marshal(e)
-		w.Write(er)
+		write.Write(er)
 		return
 	}
-	w.Header().Set("Content-type", "application/json")
+	write.Header().Set("Content-type", "application/json")
 	id, _ := json.Marshal(downloadID)
 	// fmt.Println("map: ", mapp)
 	ResponseMap[downloadID.ID] = mapp
-	w.Write(id)
+	write.Write(id)
 }
 
 func Download(url string) error {
@@ -104,25 +104,25 @@ func Download(url string) error {
 	_, err = io.Copy(out, resp.Body)
 	return err
 }
-func Status(w http.ResponseWriter, r *http.Request) {
-	id := (mux.Vars(r)["id"])
+func Status(write http.ResponseWriter, read *http.Request) {
+	id := (mux.Vars(read)["id"])
 	if _, ok := ResponseMap[id]; ok {
 		mapp, _ := json.Marshal(ResponseMap[id])
-		w.Write(mapp)
+		write.Write(mapp)
 	} else {
 		e := model.Error{
 			InternalCode: "4002",
 			Message:      "unknown download ID",
 		}
 		er, _ := json.Marshal(e)
-		w.Write(er)
+		write.Write(er)
 	}
 }
-func Files(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	t, err := template.ParseFiles("template.html")
+func Files(write http.ResponseWriter, read *http.Request) {
+	write.Header().Set("Content-Type", "text/html; charset=utf-8")
+	template, err := template.ParseFiles("template.html")
 	if err != nil {
-		fmt.Fprintf(w, "Unable to load template")
+		fmt.Fprintf(write, "Unable to load template")
 	}
-	t.Execute(w, ResponseMap)
+	template.Execute(write, ResponseMap)
 }
