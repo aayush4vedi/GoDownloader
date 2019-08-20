@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/aayush4vedi/GoDownloader/model"
+	"GoDownloader/model"
+
 	"github.com/google/uuid"
 )
 
