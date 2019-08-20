@@ -17,3 +17,7 @@ type Response struct {
 	DownloadType string            `json:"download_type"`
 	Files        map[string]string `json:files`
 }
+type Error struct {
+	InternalCode error  `json:"internal_code"`
+	Message      string `json:"message"`
+}
