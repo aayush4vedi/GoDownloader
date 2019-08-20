@@ -2,6 +2,10 @@
 A simple *File Download Manager* application which is able to accept a list of URLs to be downloaded through a REST endpoint and download those files locally on the system.
 # Installation
 ```
+go get github.com/aayush4vedi/GoDownloader
+```
+# Run
+```
 go run main.go
 ```
 # Design 
