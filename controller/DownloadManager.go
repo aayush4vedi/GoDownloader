@@ -45,6 +45,9 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 			_ = Download(url)
 		}
 		mapp.DownloadType = "serial"
+		mapp.Status = "SUCCESSFUL"
+		mapp.EndTime = time.Now()
+		mapp.Files = F
 	} else if downloadRequest.Type == "concurrent" {
 		mapp.DownloadType = "concurrent"
 		var ch = make(chan string)
@@ -53,6 +56,9 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 				for {
 					url, ok := <-ch
 					if !ok {
+						mapp.Status = "SUCCESSFUL"
+						mapp.EndTime = time.Now()
+						mapp.Files = F
 						return //channel is closed
 					}
 					_ = Download(url)
@@ -67,9 +73,9 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 			return
 		}()
 	}
-	mapp.Status = "SUCCESSFUL"
-	mapp.EndTime = time.Now()
-	mapp.Files = F
+	// mapp.Status = "SUCCESSFUL"
+	// mapp.EndTime = time.Now()
+	// mapp.Files = F
 	w.Header().Set("Content-type", "application/json")
 	id, _ := json.Marshal(downloadID)
 	// fmt.Println("map: ", mapp)
