@@ -12,16 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func homePage(w http.ResponseWriter, r *http.Request) {
+func Health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	fmt.Println("Health:OK")
 }
-func generateUUID() string {
+func GenerateUUID() string {
 	id := uuid.New()
 	return id.String()
 }
 
-func DownloadManager(w http.ResponseWriter, r *http.Request) {
+func Downloader(w http.ResponseWriter, r *http.Request) {
 	requestBody, _ := ioutil.ReadAll(r.Body)
 	var downloadRequest model.Download
 	json.Unmarshal(requestBody, &downloadRequest)
@@ -29,7 +29,7 @@ func DownloadManager(w http.ResponseWriter, r *http.Request) {
 		for _, url := range downloadRequest.Urls {
 			_ = Download(url)
 		}
-		downloadID := model.Response{"Id" + generateUUID()}
+		downloadID := model.Response{"Id" + GenerateUUID()}
 		w.Header().Set("Content-type", "application/json")
 		id, _ := json.Marshal(downloadID)
 		w.Write(id)
@@ -37,7 +37,7 @@ func DownloadManager(w http.ResponseWriter, r *http.Request) {
 }
 
 func Download(url string) error {
-	filepath := "/tmp" + "/" + generateUUID()
+	filepath := "/tmp" + "/" + GenerateUUID()
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
