@@ -16,23 +16,28 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	fmt.Println("Health:OK")
 }
-func DownloadManager(writer http.ResponseWriter, request *http.Request) {
-	requestBody, _ := ioutil.ReadAll(request.Body)
+func generateUUID() string {
+	id := uuid.New()
+	return id.String()
+}
+
+func DownloadManager(w http.ResponseWriter, r *http.Request) {
+	requestBody, _ := ioutil.ReadAll(r.Body)
 	var downloadRequest model.Download
 	json.Unmarshal(requestBody, &downloadRequest)
 	if downloadRequest.Type == "serial" {
 		for _, url := range downloadRequest.Urls {
 			_ = Download(url)
 		}
-		downloadID := model.DownloadID{"Id" + generateUuid()}
-		writer.Header().Set("Content-type", "application/json")
+		downloadID := model.DownloadID{"Id" + generateUUID()}
+		w.Header().Set("Content-type", "application/json")
 		id, _ := json.Marshal(downloadID)
-		writer.Write(id)
+		w.Write(id)
 	}
 }
 
 func Download(url string) error {
-	filepath := "/tmp" + "/" + generateUuid()
+	filepath := "/tmp" + "/" + generateUUID()
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -45,9 +50,4 @@ func Download(url string) error {
 	defer out.Close()
 	_, err = io.Copy(out, resp.Body)
 	return err
-}
-
-func generateUuid() string {
-	id := uuid.New()
-	return id.String()
 }
