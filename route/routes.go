@@ -10,7 +10,8 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Health:OK")
 }
 func RouteRequest(server *http.ServeMux) {
-	server.HandleFunc("/health", homePage)
+	fmt.Print("dasfs")
+	//server.HandleFunc("/health", homePage)
 	// server.HandleFunc("/downloads", controller.DownloadManager)
 	// TODO: add the remaining routes
 }
