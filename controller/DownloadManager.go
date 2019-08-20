@@ -71,6 +71,14 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 			mapp.Files = FileMap
 			return
 		}()
+	} else {
+		e := model.Error{
+			InternalCode: "4001",
+			Message:      "unknown type of download",
+		}
+		er, _ := json.Marshal(e)
+		w.Write(er)
+		return
 	}
 	w.Header().Set("Content-type", "application/json")
 	id, _ := json.Marshal(downloadID)

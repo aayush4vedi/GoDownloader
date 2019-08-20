@@ -19,6 +19,6 @@ type Response struct {
 	Files        map[string]string `json:files`
 }
 type Error struct {
-	InternalCode error  `json:"internal_code"`
+	InternalCode string  `json:"internal_code"`
 	Message      string `json:"message"`
 }
