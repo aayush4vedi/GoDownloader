@@ -4,6 +4,7 @@ import (
 	"GoDownloader/model"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -105,6 +106,23 @@ func Download(url string) error {
 }
 func Status(w http.ResponseWriter, r *http.Request) {
 	id := (mux.Vars(r)["id"])
-	mapp, _ := json.Marshal(ResponseMap[id])
-	w.Write(mapp)
+	if _, ok := ResponseMap[id]; ok {
+		mapp, _ := json.Marshal(ResponseMap[id])
+		w.Write(mapp)
+	} else {
+		e := model.Error{
+			InternalCode: "4002",
+			Message:      "unknown download ID",
+		}
+		er, _ := json.Marshal(e)
+		w.Write(er)
+	}
+}
+func Files(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	t, err := template.ParseFiles("template.html")
+	if err != nil {
+		fmt.Fprintf(w, "Unable to load template")
+	}
+	t.Execute(w, ResponseMap)
 }

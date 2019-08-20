@@ -14,4 +14,5 @@ go run main.go
 |    FR1       | ==GET/health==>          | return 200 OK if the application is up and running     |
 |      FR2     | ==GET/downloads==>       | To download(serial/concurrent)     |
 | FR3          |  ==GET/download/{id}==>  | To see the download status     |
+| FR4           | ==GET /files ==>      | To get the list of all files downloaded |
 
