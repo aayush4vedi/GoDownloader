@@ -29,7 +29,7 @@ func DownloadManager(w http.ResponseWriter, r *http.Request) {
 		for _, url := range downloadRequest.Urls {
 			_ = Download(url)
 		}
-		downloadID := model.DownloadID{"Id" + generateUUID()}
+		downloadID := model.Response{"Id" + generateUUID()}
 		w.Header().Set("Content-type", "application/json")
 		id, _ := json.Marshal(downloadID)
 		w.Write(id)
