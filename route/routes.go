@@ -9,6 +9,6 @@ import (
 func Route_call(router *mux.Router) {
 	router.HandleFunc("/health", controller.Health)
 	router.HandleFunc("/download/{id}", controller.Status).Methods("GET")
-	router.HandleFunc("/downloads", controller.Downloader).Methods("GET")
+	router.HandleFunc("/downloads", controller.Downloader).Methods("POST")
 	router.HandleFunc("/files", controller.Files).Methods("GET")
 }
