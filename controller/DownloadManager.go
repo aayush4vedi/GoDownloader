@@ -22,6 +22,8 @@ func GenerateUUID() string {
 	return id.String()
 }
 
+const limitThreads = 5
+
 func Downloader(w http.ResponseWriter, r *http.Request) {
 	requestBody, _ := ioutil.ReadAll(r.Body)
 	var downloadRequest model.Download
@@ -30,15 +32,36 @@ func Downloader(w http.ResponseWriter, r *http.Request) {
 		for _, url := range downloadRequest.Urls {
 			_ = Download(url)
 		}
-		downloadID := model.Response{"Id" + GenerateUUID()}
-		w.Header().Set("Content-type", "application/json")
-		id, _ := json.Marshal(downloadID)
-		w.Write(id)
+
+	} else if downloadRequest.Type == "concurrent" {
+		var ch = make(chan string)
+		for i := 0; i < limitThreads; i++ {
+			go func() {
+				for {
+					url, ok := <-ch
+					if !ok {
+						return //channel is closed
+					}
+					_ = Download(url)
+				}
+			}()
+		}
+		go func() {
+			for _, url := range downloadRequest.Urls {
+				ch <- url
+			}
+			close(ch)
+			return
+		}()
 	}
+	downloadID := model.DownloadID{"Id" + GenerateUUID()}
+	w.Header().Set("Content-type", "application/json")
+	id, _ := json.Marshal(downloadID)
+	w.Write(id)
 }
 
 func Download(url string) error {
-	filepath := "/tmp" + "/" + GenerateUUID()
+	filepath := "/Users/aayushchaturvedi/Desktop" + "/" + GenerateUUID() + ".png"
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
